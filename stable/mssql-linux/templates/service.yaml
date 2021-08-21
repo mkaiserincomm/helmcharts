@@ -35,3 +35,33 @@ spec:
   selector:
     app: {{ template "mssql.name" . }}
     release: {{ .Release.Name }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ template "mssql.fullname" . }}-nodeport
+  labels:
+    app: {{ template "mssql.name" . }}
+    chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+{{- if .Values.service.labels }}
+{{ toYaml .Values.service.labels | indent 4 }}
+{{- end }}
+{{- if .Values.service.annotations }}
+  annotations:
+{{ toYaml .Values.service.annotations | indent 4 }}
+{{- end }}
+  namespace: mssql
+spec:
+  selector:
+    app: {{ template "mssql.name" . }}
+    release: {{ .Release.Name }}
+  type: NodePort
+  ports:
+    - name: mssql
+      port: {{ .Values.service.port }}
+      protocol: TCP
+      targetPort: {{ .Values.service.port }}
+      nodePort: 31433
+  sessionAffinity: None
